@@ -43,7 +43,7 @@ export default function SignInPage() {
           <CardHeader className="text-center">
             <BookOpen className="h-12 w-12 text-blue-600 mx-auto mb-4" />
             <CardTitle className="text-2xl">Sign In</CardTitle>
-            <p className="text-gray-600">Welcome back to BlogPub</p>
+            <p className="text-gray-600">Welcome back to BlogBurst</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
