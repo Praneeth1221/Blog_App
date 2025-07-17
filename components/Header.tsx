@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { getCurrentUser, getUserProfile, signOut } from '@/lib/auth';
 import { Profile } from '@/lib/supabase/types';
-import { BookOpen, User, Settings, LogOut } from 'lucide-react';
+import { User, Settings, LogOut,ScrollText } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,8 +53,8 @@ export function Header() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">BlogPub</span>
+              <ScrollText className="h-8 w-8 text-blue-600" />
+              <span className="text-xl font-bold text-gray-900">BlogBurst</span>
             </Link>
           </div>
 
