@@ -1,12 +1,12 @@
-import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Card,CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Users, Star, ArrowRight } from "lucide-react";
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Header } from '@/components/Header';
+import { BookOpen, Users, Star, ArrowRight } from 'lucide-react';
 
 export default function HomePage() {
   return (
-   <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Header />
       
       {/* Hero Section */}
@@ -36,7 +36,7 @@ export default function HomePage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Why Choose BlogBurst?
+            Why Choose BlogPub?
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="text-center">
@@ -85,7 +85,7 @@ export default function HomePage() {
             Ready to Get Started?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Join thousands of readers who trust BlogBurst for their daily dose of quality content.
+            Join thousands of readers who trust BlogPub for their daily dose of quality content.
           </p>
           <Button asChild size="lg" variant="secondary">
             <Link href="/auth/signup">Sign Up Now</Link>
