@@ -26,12 +26,17 @@ export function PostEditor({ post, onSave }: PostEditorProps) {
   const [metaTitle, setMetaTitle] = useState(post?.meta_title || '');
   const [metaDescription, setMetaDescription] = useState(post?.meta_description || '');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSave = async () => {
-    if (!title.trim() || !content.trim()) return;
+    if (!title.trim() || !content.trim()) {
+      setError('Title and content are required');
+      return;
+    }
 
     setLoading(true);
+    setError('');
     try {
       const profile = await getUserProfile();
       if (!profile) throw new Error('User not authenticated');
@@ -68,6 +73,7 @@ export function PostEditor({ post, onSave }: PostEditorProps) {
       router.push('/dashboard');
     } catch (error) {
       console.error('Error saving post:', error);
+      setError(error instanceof Error ? error.message : 'Failed to save post');
     } finally {
       setLoading(false);
     }
@@ -80,6 +86,12 @@ export function PostEditor({ post, onSave }: PostEditorProps) {
           <CardTitle>{post ? 'Edit Post' : 'Create New Post'}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+          
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input
@@ -87,6 +99,7 @@ export function PostEditor({ post, onSave }: PostEditorProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter post title"
+              required
             />
           </div>
 
@@ -109,6 +122,7 @@ export function PostEditor({ post, onSave }: PostEditorProps) {
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your post content here..."
               rows={15}
+              required
             />
           </div>
 

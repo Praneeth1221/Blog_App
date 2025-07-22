@@ -37,6 +37,13 @@ export const signUp = async (email: string, password: string, fullName: string) 
       },
     },
   });
+  
+  // If signup is successful and user is confirmed, create profile
+  if (data.user && !error) {
+    // Wait a bit for the trigger to create the profile
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  
   return { data, error };
 };
 
