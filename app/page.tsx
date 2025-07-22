@@ -87,9 +87,6 @@ export default function HomePage() {
           <p className="text-xl text-blue-100 mb-8">
             Join thousands of readers who trust BlogPub for their daily dose of quality content.
           </p>
-          <Button asChild size="lg" variant="secondary">
-            <Link href="/auth/signup">Sign Up Now</Link>
-          </Button>
         </div>
       </section>
     </div>

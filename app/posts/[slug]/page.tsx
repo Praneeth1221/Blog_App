@@ -22,12 +22,12 @@ export default function PostPage() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    if (slug) {
-      fetchPost();
+    if (typeof slug === 'string') {
+      fetchPost(slug);
     }
   }, [slug]);
 
-  const fetchPost = async () => {
+  const fetchPost = async (slug: string) => {
     try {
       const { data, error } = await supabase
         .from('posts')
@@ -42,15 +42,12 @@ export default function PostPage() {
       if (error) throw error;
       setPost(data);
 
-      // Check if user can view content
       const currentUser = await getCurrentUser();
       setUser(currentUser);
 
       if (!data.is_premium) {
-        // Free content is always accessible
         setCanViewContent(true);
       } else if (currentUser) {
-        // Premium content requires subscription
         const hasSubscription = await isSubscribed();
         setCanViewContent(hasSubscription);
       }
@@ -100,7 +97,7 @@ export default function PostPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-8">
           <div className="flex items-center space-x-2 mb-4">
@@ -115,17 +112,15 @@ export default function PostPage() {
               )}
             </Badge>
           </div>
-          
+
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {post.title}
           </h1>
-          
+
           {post.excerpt && (
-            <p className="text-xl text-gray-600 mb-6">
-              {post.excerpt}
-            </p>
+            <p className="text-xl text-gray-600 mb-6">{post.excerpt}</p>
           )}
-          
+
           <div className="flex items-center space-x-6 text-sm text-gray-500">
             <div className="flex items-center space-x-1">
               <User className="w-4 h-4" />
@@ -151,7 +146,10 @@ export default function PostPage() {
             </div>
           </div>
         ) : (
-          <Paywall title={post.title} excerpt={post.excerpt} />
+          <Paywall
+            title={post.title}
+            excerpt={post.excerpt ?? undefined} // ✅ Fix: pass undefined instead of null
+          />
         )}
       </article>
     </div>

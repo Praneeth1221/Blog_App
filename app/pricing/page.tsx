@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
 import { Header } from '@/components/Header';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, BookOpen, Users, Shield } from 'lucide-react';
+import { getCurrentUser } from '@/lib/auth';
+
+// Initialize Stripe with your publishable key
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 export default function PricingPage() {
   const [loading, setLoading] = useState(false);
@@ -13,19 +14,32 @@ export default function PricingPage() {
   const handleSubscribe = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/create-checkout-session', {
+      const user = await getCurrentUser();
+      if (!user) {
+        window.location.href = '/auth/signin';
+        return;
+      }
+
+      // Call your API route to create a Checkout session
+      const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: 'price_12345', // Replace with your Premium Plan Price ID
+          userId: user.id,
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to create checkout session');
+      const { sessionId } = await response.json();
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error('Stripe failed to load');
 
-      const { url } = await response.json();
-      window.location.href = url;
+      // Redirect to Stripe Checkout
+      await stripe.redirectToCheckout({ sessionId });
     } catch (error) {
-      console.error('Error creating checkout session:', error);
+      console.error('Error initiating checkout:', error);
+      alert('Failed to start subscription. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
@@ -33,145 +47,40 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-xl text-gray-600">
-            Start with free content, upgrade for premium features
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Free Plan */}
-          <Card className="relative">
-            <CardHeader className="text-center">
-              <BookOpen className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle className="text-2xl">Free</CardTitle>
-              <div className="text-4xl font-bold text-gray-900">
-                $0
-                <span className="text-base font-normal text-gray-500">/month</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Access to all free articles</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Basic search and filtering</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Community discussions</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Email notifications</span>
-                </div>
-              </div>
-              <Button variant="outline" className="w-full" disabled>
-                Current Plan
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Premium Plan */}
-          <Card className="relative border-blue-200 shadow-lg">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <Badge className="bg-blue-600">
-                <Star className="w-3 h-3 mr-1" />
-                Most Popular
-              </Badge>
-            </div>
-            <CardHeader className="text-center">
-              <Users className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle className="text-2xl">Premium</CardTitle>
-              <div className="text-4xl font-bold text-gray-900">
-                $9.99
-                <span className="text-base font-normal text-gray-500">/month</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Everything in Free plan</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Access to all premium articles</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Ad-free reading experience</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Early access to new content</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Advanced search features</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span>Priority customer support</span>
-                </div>
-              </div>
-              <Button
-                onClick={handleSubscribe}
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-              >
-                {loading ? 'Processing...' : 'Subscribe Now'}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mt-16 max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-            Frequently Asked Questions
-          </h2>
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Can I cancel my subscription anytime?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Yes, you can cancel your subscription at any time. You'll continue to have access to premium features until the end of your current billing period.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">What payment methods do you accept?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  We accept all major credit cards (Visa, MasterCard, American Express) and PayPal through our secure payment processor, Stripe.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Is there a free trial?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  While we don't offer a traditional free trial, you can access all free content without any limitations. This gives you a great sense of our content quality before upgrading.
-                </p>
-              </CardContent>
-            </Card>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Choose Your Plan</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-gray-900">Free Plan</h2>
+            <p className="text-gray-600 mt-2">Basic access to blog features</p>
+            <p className="text-2xl font-bold text-gray-900 mt-4">$0/month</p>
+            <ul className="mt-4 space-y-2">
+              <li className="text-gray-600">Read public posts</li>
+              <li className="text-gray-600">Limited post creation</li>
+            </ul>
+            <button
+              className="mt-6 w-full bg-gray-300 text-gray-800 py-2 rounded-md"
+              disabled
+            >
+              Current Plan
+            </button>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md border-2 border-blue-500">
+            <h2 className="text-xl font-semibold text-gray-900">Premium Plan</h2>
+            <p className="text-gray-600 mt-2">Unlock exclusive features</p>
+            <p className="text-2xl font-bold text-gray-900 mt-4">$15/month</p>
+            <ul className="mt-4 space-y-2">
+              <li className="text-gray-600">Unlimited post creation</li>
+              <li className="text-gray-600">Access to premium content</li>
+              <li className="text-gray-600">Priority support</li>
+            </ul>
+            <button
+              onClick={handleSubscribe}
+              disabled={loading}
+              className="mt-6 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+            >
+              {loading ? 'Processing...' : 'Subscribe'}
+            </button>
           </div>
         </div>
       </div>

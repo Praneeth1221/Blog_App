@@ -4,7 +4,7 @@ import { PostEditor } from '@/components/PostEditor';
 import { Post } from '@/lib/supabase/types';
 import { notFound } from 'next/navigation';
 
-// Generate static paths for all post IDs
+// ✅ CORRECT: wrap id in params
 export async function generateStaticParams() {
   const { data: posts, error } = await supabase
     .from('posts')
@@ -16,22 +16,26 @@ export async function generateStaticParams() {
   }
 
   return posts.map((post) => ({
-    id: post.id.toString(), // Convert ID to string for Next.js
+    params: {
+      id: post.id.toString(),
+    },
   }));
 }
 
-// Server Component for the edit post page
-export default async function EditPostPage({ params }: { params: { id: string } }) {
+// ✅ CORRECT: props type
+export default async function EditPostPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const { id } = params;
 
-  // Fetch post data from Supabase
   const { data: post, error } = await supabase
     .from('posts')
     .select('*')
     .eq('id', id)
     .single();
 
-  // If post not found or error, show 404
   if (error || !post) {
     notFound();
   }
